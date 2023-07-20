@@ -71,6 +71,7 @@
                 padding: 10px;
                 display: flex;
                 align-items: center;
+                overflow: scroll;
             }
             
             /* Textarea input */
@@ -165,16 +166,7 @@
                 </div>
                 <div class="chat-messages">
                     <!-- Messages will be dynamically added here -->
-                    <h3>{{qa.question}}</h3>
-
-                    <input type="radio" name="answer" id="a_1" value="{{qa.answer.1}}">
-                    <label for="a_1">{{qa.answer.1}}</label><br>
-                    <input type="radio" name="answer" id="a_2" value="{{qa.answer.2}}">
-                    <label for="a_2">{{qa.answer.2}}</label><br>
-                    <input type="radio" name="answer" id="a_3" value="{{qa.answer.3}}">
-                    <label for="a_3">{{qa.answer.3}}</label><br>
-                    <input type="radio" name="answer" id="a_4" value="{{qa.answer.4}}">
-                    <label for="a_4">{{qa.answer.4}}</label><br>
+                    
 
                 </div>
                 <div class="chat-input">
@@ -201,17 +193,26 @@
                     document.querySelector("textarea").value = "";
     
                     // Simulate a bot response (replace this with actual backend call in your implementation)
-                    setTimeout(() => {
-                        const botResponse = "This is a bot response."; // Replace this with the actual response from your Chatbot backend
-                        const botMessageDiv = document.createElement("div");
-                        botMessageDiv.classList.add("message", "bot-message");
-                        botMessageDiv.textContent = botResponse;
-                        document.querySelector(".chat-messages").appendChild(botMessageDiv);
+                        fetch(`get_text/${userMessage}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data)
+                            const botResponse = data.text; // Replace this with the actual response from your Chatbot backend
+                            const botMessageDiv = document.createElement("div");
+                            botMessageDiv.classList.add("message", "bot-message");
+                            botMessageDiv.textContent = botResponse;
+                            document.querySelector(".chat-messages").appendChild(botMessageDiv);
+                        })
+                        .catch(error => {
+                            console.log(error.message) 
+                        }) 
+
+                        
     
                         // Scroll to the bottom of the messages container to show the latest message
                         const messagesContainer = document.querySelector(".chat-messages");
                         messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                    }, 1000); // Simulate a slight delay for bot response (1 second in this case)
+                     // Simulate a slight delay for bot response (1 second in this case)
                 }
             }
         </script>

@@ -1,5 +1,7 @@
 from django.shortcuts import render
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 # Create your views here.
 
@@ -17,6 +19,12 @@ def index(request):
             "syllabus": SYLLABUS,
             "qa": QUESTION_ANSWER,
     })
+
+
+def get_text(request, message):
+
+    text = "This is the text sent from the Django API!"
+    return JsonResponse({'text': text, "message": message}, safe=False)          
   
 
              
