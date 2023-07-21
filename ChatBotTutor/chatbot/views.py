@@ -16,7 +16,9 @@ import pypdf
  
 import nltk
 nltk.download('punkt')
-nltk.download('punkt', 'stopwords', 'averaged_perceptron_tagger')
+nltk.download('stopwords')
+nltk.download('averaged_perceptron_tagger')
+
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.tag import pos_tag
@@ -48,7 +50,7 @@ from langchain.memory import ConversationBufferMemory
 # Create your views here.
 
 SYLLABUS = [{'name': "Section1: Intro to algorithmes", 'completed': True}, 
-            {'name': "Section2: Greedy Search", 'completed': True},
+            {'name': "Section2: Greedy Search", 'completed': False}, 
             {'name': "Section3: Brute Force", 'completed': False},
             {'name': "Section4: Dynamic Programming", 'completed': False},
             ]
@@ -103,16 +105,18 @@ def search(topic):
     wiki_html = wikipediaapi.Wikipedia(
         user_agent='MyProjectName (merlin@example.com)',
             language='en',
-            extract_format=wikipediaapi.ExtractFormat.HTML
+            extract_format=wikipediaapi.ExtractFormat.WIKI 
     )
     page_py = wiki_html.page(topic)
     if page_py.exists():
         title = page_py.title
-        text = page_py.text
+        text = page_py.summary
+         
     else:
         title = "Not Found"
         text = "Please formulate your question"
     return (title, text)
+
 
 def hamming_distance(seq1, seq2):
     min_ = min(len(seq1),len(seq2))
@@ -139,33 +143,28 @@ def get_keywords(sentence):
 
     return keywords
 
+
 def get_answer(question,qa):
     qa.combine_docs_chain.verbose = False
     r= qa({"question":question})
     similarty1 = hamming_distance(r['answer'].lower(), qa.retriever.vectorstore.similarity_search(question)[-1].page_content.lower())
-    similarty2 = hamming_distance(r['answer'].lower(), question.lower())
-    if  similarty1 > 0.001:
-        if similarty2 > 0.01:
-            r =r['answer'] 
-
-
-        else:
-
-
-
-            
-            r = search(" ".join(get_keywords(question)))[-1]
+    # similarty2 = hamming_distance(r['answer'].lower(), question.lower())
+    if  similarty1 > 0.01: 
+        # if similarty2 > 0.001:
+        r =r['answer'] 
+        # else:
+        #     r = search(" ".join(get_keywords(question)))[-1]
     else:
         r = search(" ".join(get_keywords(question)))[-1]
         
-    print("similarty", similarty1, similarty2, "key words", get_keywords(question))
-    return r['answer']  
+    print("similarty", similarty1, "key words", get_keywords(question)) 
+    return r
 
 
 def create_flan_t5_large(load_in_nbit=False):
             # Wrap it in HF pipeline for use with LangChain
             model=config["llm"]
-
+ 
             tokenizer = AutoTokenizer.from_pretrained(model)
             return pipeline(
                 task="text2text-generation",
@@ -188,7 +187,7 @@ def get_retrievalQa(context,embedding, pipe):
     # Split documents and create text snippets 
     text_splitter = CharacterTextSplitter(chunk_size=10, chunk_overlap=0)
     texts = text_splitter.split_documents([context])
-    text_splitter = TokenTextSplitter(chunk_size=100, chunk_overlap=20, encoding_name="cl100k_base")  # This the encoding for text-embedding-ada-002
+    text_splitter = TokenTextSplitter(chunk_size=100, chunk_overlap=10, encoding_name="cl100k_base")  # This the encoding for text-embedding-ada-002
     texts = text_splitter.split_documents(texts)
 
     persist_directory = config["persist_directory"]
